@@ -1,0 +1,70 @@
+#! /bin/bash
+
+assembly_path="tests/src/*.s"
+bin_path="tests/bin"
+out_path="/tests"
+parser_path="./parser/bin/parser"
+simulator_path=$1
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+for assembly_file in $assembly_path
+do
+    $parser_path "$assembly_file" "$bin_path/#"
+done
+
+for file in $assembly_path
+do
+    if [ -f "$file" ]; then
+        file_data=()
+        while read -r line  || [[ -n "$line" ]]
+        do
+            file_data+=("${line//#}")
+        done < "$file"
+    fi
+
+    testID=${file_data[0]}
+    instruction=${file_data[1]}
+    description=${file_data[2]}
+    expected_retcode=${file_data[3]}
+    author=${file_data[4]}
+    getchar=${file_data[5]}
+    putchar=${file_data[6]}
+
+    sim_out=$(echo "$getchar" | $simulator_path "$bin_path/$testID.bin")
+
+    actual_retcode=$?
+
+    status=""
+    message=""
+
+    if [[ "$actual_retcode" == "$expected_retcode" ]]
+    then
+        status="PASS"
+        message+="Expected retcode: $expected_retcode  Actual retcode: $actual_retcode"
+        if [[ "$putchar" == "$sim_out" ]]
+        then
+            status="PASS"
+            if [[ "$putchar" != "" ]]
+            then
+            message+=" Expected output: $putchar  Actual output: $sim_out"
+            fi
+        else
+            status="FAIL"
+            message+=" Expected output: $putchar  Actual output: $sim_out"
+        fi
+    else
+        status="FAIL"
+        message+="Expected retcode: $expected_retcode  Actual retcode: $actual_retcode"
+    fi
+
+    if [[ "$status" == "PASS" ]]
+    then
+    print="$testID, $instruction, $description, ${GREEN}$status${NC}, $author, $message"
+    else
+        print="$testID, $instruction, $description, ${RED}$status${NC}, $author, $message"
+    fi
+    echo -e $print
+done
