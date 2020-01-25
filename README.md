@@ -6,6 +6,8 @@ Simulator written in `C++` and testbench written in `bash`
 
 Open source parser, used to convert assembly files to binary files for the testbench, was made by Olly Larkin.
 
+Mips project completed in pairs with #Anushka Kulkarni.
+
 USAGE:
 `make simulator` to build the simulator
 
@@ -14,3 +16,5 @@ USAGE:
 `make run_tests` to build the simulator and then run the testbench on the simulator
 
 `make clean` to remove the testbench, simulator, and parser executables.
+
+
